@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Stadium - Desafío Kanto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --pk-red: #C03928;
+            --pk-grey: #7F8C8D;
+            --pk-yellow: #F1C40F;
+            --pk-dark-blue: #2C3E50;
+        }
+
+        body {
+            background-color: var(--pk-dark-blue);
+            color: white;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+        }
+
+        canvas {
+            display: block;
+            touch-action: none;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .pointer-events-auto {
+            pointer-events: auto;
+        }
+
+        .text-pk-yellow {
+            color: var(--pk-yellow);
+        }
+
+        .bg-pk-red {
+            background-color: var(--pk-red);
+        }
+
+        .bg-pk-grey {
+            background-color: var(--pk-grey);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-center h-screen">
+
+    <!-- Capa de Interfaz de Usuario (UI) -->
+    <div id="ui-layer" class="p-4 md:p-6 w-full">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-left">
+                <h1
+                    class="text-3xl md:text-4xl font-black italic tracking-tighter text-pk-yellow drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+                    POKÉMON STADIUM
+                </h1>
+                <p id="sub-header" class="text-[10px] md:text-xs font-bold text-white/70 uppercase tracking-widest">
+                    Kanto Edition | 151 Pokémon</p>
+            </div>
+
+            <div class="flex gap-4 pointer-events-auto items-center">
+                <div id="team-badge"
+                    class="bg-black/40 border border-white/10 px-4 md:px-6 py-2 rounded-xl backdrop-blur-sm">
+                    <span class="text-[10px] block text-pk-yellow font-bold uppercase">Tu Equipo</span>
+                    <span id="team-count" class="text-xl md:text-2xl font-black italic">0 / 6</span>
+                </div>
+
+                <button id="btn-battle" onclick="generateOpponents()"
+                    class="hidden bg-pk-red hover:brightness-110 text-white px-8 py-3 rounded-xl font-black italic transition-all transform hover:scale-105 shadow-xl border-b-4 border-black/30">
+                    BUSCAR RIVALES
+                </button>
+
+                <button id="btn-reset" onclick="resetApp()"
+                    class="hidden bg-pk-grey hover:bg-white hover:text-black text-white px-6 py-3 rounded-xl font-bold transition-all border-b-4 border-black/30">
+                    REINICIAR
+                </button>
+            </div>
+        </div>
+
+        <div id="instruction"
+            class="text-center mt-4 text-xs md:text-sm font-bold text-white/50 uppercase tracking-tighter">
+            Selecciona 6 Pokémon para tu equipo
+        </div>
+    </div>
+
+    <!-- El Canvas Principal -->
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const teamCountDisplay = document.getElementById('team-count');
+        const btnBattle = document.getElementById('btn-battle');
+        const btnReset = document.getElementById('btn-reset');
+        const instruction = document.getElementById('instruction');
+        const subHeader = document.getElementById('sub-header');
+
+        // Configuración y Datos
+        let gameState = 'CATALOG'; // CATALOG, SELECTION, RESULT
+        let scrollY = 0;
+        let selectedIds = new Set();
+        let hoveredId = null;
+        let hoveredOpponentIdx = null;
+        let images = {};
+        let opponentTeams = [];
+        let playerTotal = 0;
+        let selectedRivalTeam = null;
+
+        const COLORS = {
+            red: '#C03928',
+            grey: '#7F8C8D',
+            yellow: '#F1C40F',
+            darkBlue: '#2C3E50',
+            cardBg: '#243342',
+            cardHover: '#3a4b5c'
+        };
+
+        const NAMES = [
+            "Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise", "Caterpie", "Metapod", "Butterfree", "Weedle", "Kakuna", "Beedrill", "Pidgey", "Pidgeotto", "Pidgeot", "Rattata", "Raticate", "Spearow", "Fearow", "Ekans", "Arbok", "Pikachu", "Raichu", "Sandshrew", "Sandslash", "Nidoran♀", "Nidorina", "Nidoqueen", "Nidoran♂", "Nidorino", "Nidoking", "Clefairy", "Clefable", "Vulpix", "Ninetales", "Jigglypuff", "Wigglytuff", "Zubat", "Golbat", "Oddish", "Gloom", "Vileplume", "Paras", "Parasect", "Venonat", "Venomoth", "Diglett", "Dugtrio", "Meowth", "Persian", "Psyduck", "Golduck", "Mankey", "Primeape", "Growlithe", "Arcanine", "Poliwag", "Poliwhirl", "Poliwrath", "Abra", "Kadabra", "Alakazam", "Machop", "Machoke", "Machamp", "Bellsprout", "Weepinbell", "Victreebel", "Tentacool", "Tentacruel", "Geodude", "Graveler", "Golem", "Ponyta", "Rapidash", "Slowpoke", "Slowbro", "Magnemite", "Magneton", "Farfetch'd", "Doduo", "Dodrio", "Seel", "Dewgong", "Grimer", "Muk", "Shellder", "Cloyster", "Gastly", "Haunter", "Gengar", "Onix", "Drowzee", "Hypno", "Krabby", "Kingler", "Voltorb", "Electrode", "Exeggcute", "Exeggutor", "Cubone", "Marowak", "Hitmonlee", "Hitmonchan", "Lickitung", "Koffing", "Weezing", "Rhyhorn", "Rhydon", "Chansey", "Tangela", "Kangaskhan", "Horsea", "Seadra", "Goldeen", "Seaking", "Staryu", "Starmie", "Mr. Mime", "Scyther", "Jynx", "Electabuzz", "Magmar", "Pinsir", "Tauros", "Magikarp", "Gyarados", "Lapras", "Ditto", "Eevee", "Vaporeon", "Jolteon", "Flareon", "Porygon", "Omanyte", "Omastar", "Kabuto", "Kabutops", "Aerodactyl", "Snorlax", "Articuno", "Zapdos", "Moltres", "Dratini", "Dragonair", "Dragonite", "Mewtwo", "Mew"
+        ];
+
+        const POKEMONS = NAMES.map((name, index) => {
+            const id = index + 1;
+            let basePC = 1000 + Math.floor(Math.random() * 2000);
+            if (id === 150 || id === 151 || [144, 145, 146].includes(id)) basePC += 1500;
+            if ([3, 6, 9, 65, 68, 94, 130, 143, 149].includes(id)) basePC += 800;
+            return { id, name, pc: basePC };
+        });
+
+        function init() {
+            resize();
+            loadImages();
+            requestAnimationFrame(render);
+        }
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function loadImages() {
+            POKEMONS.forEach(p => {
+                const img = new Image();
+                img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png`;
+                img.onload = () => { images[p.id] = img; };
+            });
+        }
+
+        // --- CATALOGO ---
+        const cardW = 150;
+        const cardH = 180;
+        const gap = 15;
+
+        function drawCatalog() {
+            const cols = Math.floor(canvas.width / (cardW + gap));
+            const startX = (canvas.width - (cols * (cardW + gap) - gap)) / 2;
+            const startY = 140 + scrollY;
+
+            POKEMONS.forEach((p, i) => {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                const x = startX + col * (cardW + gap);
+                const y = startY + row * (cardH + gap);
+
+                p.hitbox = { x, y, w: cardW, h: cardH };
+                if (y + cardH < 0 || y > canvas.height) return;
+
+                const isSelected = selectedIds.has(p.id);
+                const isHovered = hoveredId === p.id;
+
+                ctx.fillStyle = isSelected ? COLORS.red : (isHovered ? COLORS.cardHover : COLORS.cardBg);
+                ctx.beginPath();
+                ctx.roundRect(x, y, cardW, cardH, 12);
+                ctx.fill();
+
+                ctx.strokeStyle = isSelected ? COLORS.yellow : 'rgba(255,255,255,0.1)';
+                ctx.lineWidth = isSelected ? 4 : 1;
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                ctx.font = '900 35px Arial';
+                ctx.textAlign = 'right';
+                ctx.fillText(p.id.toString().padStart(3, '0'), x + cardW - 10, y + 35);
+
+                if (images[p.id]) {
+                    ctx.drawImage(images[p.id], x + 15, y + 10, cardW - 30, cardW - 30);
+                }
+
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(p.name.toUpperCase(), x + cardW / 2, y + cardH - 35);
+
+                ctx.fillStyle = isSelected ? 'white' : COLORS.yellow;
+                ctx.font = '900 16px Arial';
+                ctx.fillText(`${p.pc} PC`, x + cardW / 2, y + cardH - 15);
+            });
+        }
+
+        // --- SELECCIÓN DE RIVALES ---
+        function drawOpponentSelection() {
+            const containerW = Math.min(canvas.width * 0.9, 1200);
+            const startX = (canvas.width - containerW) / 2;
+            const cardWidth = (containerW - 60) / 4;
+            const startY = 180;
+
+            opponentTeams.forEach((team, idx) => {
+                const x = startX + idx * (cardWidth + 20);
+                const isHovered = hoveredOpponentIdx === idx;
+
+                team.hitbox = { x, y: startY, w: cardWidth, h: 450 };
+
+                // Fondo equipo rival
+                ctx.fillStyle = isHovered ? '#1e2b38' : 'rgba(0,0,0,0.3)';
+                ctx.beginPath();
+                ctx.roundRect(x, startY, cardWidth, 450, 15);
+                ctx.fill();
+                ctx.strokeStyle = isHovered ? COLORS.yellow : 'rgba(255,255,255,0.1)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Cabecera equipo
+                ctx.fillStyle = COLORS.red;
+                ctx.font = '900 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`EQUIPO RIVAL ${idx + 1}`, x + cardWidth / 2, startY + 30);
+
+                const totalPC = team.reduce((s, p) => s + p.pc, 0);
+                ctx.fillStyle = 'white';
+                ctx.font = '900 24px Arial';
+                ctx.fillText(totalPC.toLocaleString(), x + cardWidth / 2, startY + 65);
+                ctx.font = 'bold 10px Arial';
+                ctx.fillStyle = COLORS.grey;
+                ctx.fillText("PC TOTAL", x + cardWidth / 2, startY + 80);
+
+                // Miniaturas
+                team.forEach((p, pIdx) => {
+                    const rowY = startY + 100 + (pIdx * 55);
+                    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                    ctx.beginPath();
+                    ctx.roundRect(x + 10, rowY, cardWidth - 20, 50, 8);
+                    ctx.fill();
+
+                    if (images[p.id]) {
+                        ctx.drawImage(images[p.id], x + 15, rowY + 5, 40, 40);
+                    }
+
+                    ctx.textAlign = 'left';
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 11px Arial';
+                    ctx.fillText(p.name.toUpperCase(), x + 60, rowY + 22);
+                    ctx.fillStyle = COLORS.yellow;
+                    ctx.font = '900 12px Arial';
+                    ctx.fillText(`${p.pc} PC`, x + 60, rowY + 40);
+                });
+
+                // Botón visual
+                ctx.fillStyle = isHovered ? COLORS.yellow : 'white';
+                ctx.beginPath();
+                ctx.roundRect(x + 20, startY + 450 - 50, cardWidth - 40, 35, 8);
+                ctx.fill();
+                ctx.fillStyle = 'black';
+                ctx.font = 'black 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText("¡RETAR!", x + cardWidth / 2, startY + 450 - 27);
+            });
+        }
+
+        // --- RESULTADO ---
+        function drawResult() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const rivalTotal = selectedRivalTeam.reduce((s, p) => s + p.pc, 0);
+            const playerWins = playerTotal >= rivalTotal;
+
+            ctx.fillStyle = 'rgba(0,0,0,0.9)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const winnerText = playerWins ? "¡VICTORIA!" : "DERROTA";
+            ctx.shadowColor = playerWins ? COLORS.yellow : COLORS.red;
+            ctx.shadowBlur = 30;
+            ctx.fillStyle = playerWins ? COLORS.yellow : COLORS.red;
+            ctx.font = 'italic 900 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(winnerText, centerX, centerY - 40);
+
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText(`${playerTotal.toLocaleString()} PC vs ${rivalTotal.toLocaleString()} PC`, centerX, centerY + 30);
+
+            ctx.font = '14px Arial';
+            ctx.fillStyle = COLORS.grey;
+            const msg = playerWins ? "HAS DOMINADO EL ESTADIO" : "TU EQUIPO NECESITA MÁS ENTRENAMIENTO";
+            ctx.fillText(msg, centerX, centerY + 70);
+        }
+
+        // --- CORE LOOP ---
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === 'CATALOG') {
+                drawCatalog();
+            } else if (gameState === 'SELECTION') {
+                drawOpponentSelection();
+            } else if (gameState === 'RESULT') {
+                drawResult();
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        // --- LÓGICA DE JUEGO ---
+        function generateOpponents() {
+            gameState = 'SELECTION';
+            btnBattle.classList.add('hidden');
+            instruction.textContent = "Analiza los equipos y elige a tu oponente";
+            subHeader.textContent = "Fase de Desafío";
+
+            playerTotal = POKEMONS
+                .filter(p => selectedIds.has(p.id))
+                .reduce((sum, p) => sum + p.pc, 0);
+
+            opponentTeams = [];
+            for (let i = 0; i < 4; i++) {
+                const team = [...POKEMONS]
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, 6);
+                opponentTeams.push(team);
+            }
+        }
+
+        function executeBattle(rivalIdx) {
+            selectedRivalTeam = opponentTeams[rivalIdx];
+            gameState = 'RESULT';
+            instruction.classList.add('hidden');
+            btnReset.classList.remove('hidden');
+        }
+
+        function resetApp() {
+            selectedIds.clear();
+            gameState = 'CATALOG';
+            btnReset.classList.add('hidden');
+            instruction.classList.remove('hidden');
+            instruction.textContent = "Selecciona 6 Pokémon para tu equipo";
+            subHeader.textContent = "Kanto Edition | 151 Pokémon";
+            scrollY = 0;
+            updateUI();
+        }
+
+        function updateUI() {
+            teamCountDisplay.textContent = `${selectedIds.size} / 6`;
+            if (selectedIds.size === 6) {
+                btnBattle.classList.remove('hidden');
+                instruction.textContent = "¡Equipo listo! Busca rivales";
+            } else {
+                btnBattle.classList.add('hidden');
+            }
+        }
+
+        // --- EVENTOS ---
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            if (gameState === 'CATALOG') {
+                hoveredId = null;
+                POKEMONS.forEach(p => {
+                    if (p.hitbox && mouseX > p.hitbox.x && mouseX < p.hitbox.x + p.hitbox.w &&
+                        mouseY > p.hitbox.y && mouseY < p.hitbox.y + p.hitbox.h) {
+                        hoveredId = p.id;
+                    }
+                });
+            } else if (gameState === 'SELECTION') {
+                hoveredOpponentIdx = null;
+                opponentTeams.forEach((team, idx) => {
+                    if (team.hitbox && mouseX > team.hitbox.x && mouseX < team.hitbox.x + team.hitbox.w &&
+                        mouseY > team.hitbox.y && mouseY < team.hitbox.y + team.hitbox.h) {
+                        hoveredOpponentIdx = idx;
+                    }
+                });
+            }
+        });
+
+        canvas.addEventListener('click', () => {
+            if (gameState === 'CATALOG' && hoveredId) {
+                if (selectedIds.has(hoveredId)) {
+                    selectedIds.delete(hoveredId);
+                } else if (selectedIds.size < 6) {
+                    selectedIds.add(hoveredId);
+                }
+                updateUI();
+            } else if (gameState === 'SELECTION' && hoveredOpponentIdx !== null) {
+                executeBattle(hoveredOpponentIdx);
+            }
+        });
+
+        window.addEventListener('wheel', (e) => {
+            if (gameState !== 'CATALOG') return;
+            scrollY -= e.deltaY;
+            const cols = Math.floor(canvas.width / (cardW + gap));
+            const rows = Math.ceil(POKEMONS.length / cols);
+            const totalH = rows * (cardH + gap) + 200;
+            scrollY = Math.min(0, Math.max(canvas.height - totalH, scrollY));
+        });
+
+        window.addEventListener('resize', resize);
+        init();
+    </script>
+</body>
+
+</html>
