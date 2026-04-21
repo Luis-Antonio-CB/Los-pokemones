@@ -1,19 +1,14 @@
 :root {
-    --primary: #C0392B;        /* Rojo extraído de la imagen */
+    --primary: #C0392B;        
     --primary-dark: #A93226;
-    --secondary: #F1C40F;      /* Amarillo extraído de la imagen */
-    --accent: #7F8C8D;         /* Gris extraído de la imagen */
-    --bg-color: #2C3E50;       /* Azul oscuro extraído de la imagen */
-    --card-bg: rgba(127, 140, 141, 0.15);
+    --secondary: #F1C40F;      
+    --accent: #7FBCBD;         
+    --bg-color: #2C3E50;       
+    --card-bg: rgba(127, 188, 189, 0.15);
     --text-color: #ffffff;
     --glass-border: rgba(241, 196, 15, 0.2);
-    
-    /* Type Colors */
-    --type-grass: #4ade80;
-    --type-fire: #fb923c;
-    --type-water: #60a5fa;
-    --type-electric: #facc15;
-    --type-psychic: #e879f9;
+    --danger: #e74c3c;
+    --success: #2ecc71;
 }
 
 * {
@@ -30,6 +25,7 @@ body {
         radial-gradient(at 100% 100%, rgba(241, 196, 15, 0.1) 0px, transparent 50%);
     color: var(--text-color);
     min-height: 100vh;
+    background-attachment: fixed;
 }
 
 .app-container {
@@ -40,174 +36,223 @@ body {
 
 header {
     text-align: center;
-    margin-bottom: 3rem;
-    animation: fadeInDown 0.8s ease-out;
+    margin-bottom: 2rem;
+    animation: fadeInDown 0.6s ease-out;
 }
 
 h1 {
-    font-size: 3.5rem;
+    font-size: 3rem;
     font-weight: 800;
-    background: linear-gradient(to right, var(--primary), #fff);
+    background: linear-gradient(to right, var(--primary), var(--secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 0.5rem;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
 }
 
 header p {
-    color: #94a3b8;
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
+    color: #bdc3c7;
+    font-size: 1.1rem;
 }
 
-.filter-controls {
+/* Constructor de Equipo */
+.team-section {
+    background: rgba(44, 62, 80, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 2rem;
+    backdrop-filter: blur(12px);
+    margin-bottom: 3rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.team-header {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
     gap: 1rem;
 }
 
-button {
+.team-input {
+    flex: 1;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--glass-border);
+    border: 2px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
     color: white;
-    padding: 0.8rem 1.5rem;
-    border-radius: 50px;
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 600;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
+    outline: none;
+    transition: all 0.3s;
 }
 
-button:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-}
-
-button.active {
-    background: var(--secondary);
+.team-input:focus {
     border-color: var(--secondary);
-    box-shadow: 0 0 20px rgba(59, 76, 202, 0.4);
+    box-shadow: 0 0 15px rgba(241, 196, 15, 0.3);
+}
+
+.counter-box {
+    background: var(--primary);
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 1.5rem;
+    box-shadow: 0 5px 15px rgba(192, 57, 43, 0.4);
+}
+
+.team-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.5rem;
+    min-height: 250px;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 1.2rem;
+    border: 2px dashed var(--accent);
+    border-radius: 15px;
+}
+
+.team-member-card {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: 15px;
+    padding: 1rem;
+    text-align: center;
+    position: relative;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.team-image {
+    width: 90px;
+    height: 90px;
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+    margin-bottom: 0.5rem;
+    transition: transform 0.2s;
+}
+.team-image:hover { transform: scale(1.1); }
+
+.team-member-card h3 {
+    font-size: 1rem;
+    text-transform: capitalize;
+    margin-bottom: 0.8rem;
+    color: var(--secondary);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.stat {
+    background: rgba(255,255,255,0.05);
+    padding: 0.3rem;
+    border-radius: 5px;
+    font-weight: bold;
+}
+.stat span {
+    color: var(--accent);
+    display: block;
+    font-size: 0.7rem;
+}
+
+.remove-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+.remove-btn:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.divider {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--glass-border), transparent);
+    margin: 3rem 0;
+}
+
+/* Catálogo */
+.section-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: #ecf0f1;
 }
 
 .pokemon-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
-    animation: fadeInUp 0.8s ease-out;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
 }
 
-.pokemon-card {
+.catalog-card {
     background: var(--card-bg);
     border: 1px solid var(--glass-border);
     border-radius: 20px;
-    padding: 2rem;
+    padding: 1.5rem;
     text-align: center;
-    backdrop-filter: blur(16px);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    position: relative;
-    overflow: hidden;
-}
-
-.pokemon-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.pokemon-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    border-color: rgba(255, 255, 255, 0.2);
-}
-
-.pokemon-card:hover::before {
-    opacity: 1;
-}
-
-.pokemon-image {
-    width: 150px;
-    height: 150px;
-    margin: 0 auto 1.5rem;
-    position: relative;
-    z-index: 1;
-    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
-    transition: transform 0.3s ease;
-}
-
-.pokemon-card:hover .pokemon-image {
-    transform: scale(1.1) rotate(5deg);
-}
-
-.pokemon-name {
-    font-size: 1.8rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-    text-transform: capitalize;
-}
-
-.pokemon-id {
-    position: absolute;
-    top: 1rem;
-    right: 1.5rem;
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: rgba(255, 255, 255, 0.1);
-}
-
-.pokemon-types {
+    backdrop-filter: blur(8px);
+    transition: all 0.3s;
     display: flex;
-    justify-content: center;
-    gap: 0.5rem;
+    flex-direction: column;
+}
+
+.catalog-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--secondary);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.catalog-card img {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1rem;
+    filter: drop-shadow(0 5px 8px rgba(0,0,0,0.3));
+}
+
+.catalog-card h2 {
+    font-size: 1.3rem;
+    text-transform: capitalize;
     margin-bottom: 1rem;
+    flex: 1;
 }
 
-.type-badge {
-    padding: 0.3rem 1rem;
-    border-radius: 50px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.add-btn {
+    background: var(--primary);
+    border: none;
+    color: white;
+    padding: 0.8rem;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.add-btn:hover {
+    background: var(--primary-dark);
 }
 
-.pokemon-legendary-badge {
-    display: inline-block;
-    background: linear-gradient(45deg, #FFD700, #FFA500);
-    color: #000;
-    padding: 0.2rem 0.8rem;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    font-weight: 800;
-    margin-top: 1rem;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-}
-
-/* Animations */
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(40px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-40px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
