@@ -17,7 +17,11 @@
 
         <section class="team-section">
             <div class="team-header">
-                <input type="text" id="team-name" placeholder="📝 Escribe un nombre para tu equipo..." class="team-input">
+                <input type="text" id="team-name" placeholder="📝 Nombre de tu equipo..." class="team-input">
+                <div class="action-buttons">
+                    <button id="export-btn" class="action-btn" title="Copia tu equipo para compartirlo">📤 Exportar</button>
+                    <button id="battle-btn" class="battle-btn" title="Pega el código de un rival">⚔️ Batalla vs Rival</button>
+                </div>
                 <div class="counter-box">
                     <span id="count">0</span> / 6
                 </div>
@@ -36,6 +40,34 @@
                 <!-- Se inyectarán los Pokémon vía js -->
             </div>
         </section>
+    </div>
+
+    <!-- Modal de Batalla -->
+    <div id="battle-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="close-modal" class="close-btn">&times;</button>
+            <h2 class="battle-title">¡Batalla Pokémon!</h2>
+            
+            <div class="battle-arena">
+                <div class="arena-side player-side">
+                    <h3 id="player-team-name-display">Tu Equipo</h3>
+                    <div id="player-arena-slots" class="arena-slots"></div>
+                    <div class="power-score" id="player-score">Poder: 0</div>
+                </div>
+                
+                <div class="vs-badge">VS</div>
+                
+                <div class="arena-side enemy-side">
+                    <h3>Equipo Rival <span id="enemy-name"></span></h3>
+                    <div id="enemy-arena-slots" class="arena-slots"></div>
+                    <div class="power-score" id="enemy-score">Poder: 0</div>
+                </div>
+            </div>
+            
+            <div id="battle-result" class="battle-result">
+                <!-- Resultado de la batalla -->
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
