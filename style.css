@@ -1,0 +1,213 @@
+:root {
+    --primary: #C0392B;        /* Rojo extraído de la imagen */
+    --primary-dark: #A93226;
+    --secondary: #F1C40F;      /* Amarillo extraído de la imagen */
+    --accent: #7F8C8D;         /* Gris extraído de la imagen */
+    --bg-color: #2C3E50;       /* Azul oscuro extraído de la imagen */
+    --card-bg: rgba(127, 140, 141, 0.15);
+    --text-color: #ffffff;
+    --glass-border: rgba(241, 196, 15, 0.2);
+    
+    /* Type Colors */
+    --type-grass: #4ade80;
+    --type-fire: #fb923c;
+    --type-water: #60a5fa;
+    --type-electric: #facc15;
+    --type-psychic: #e879f9;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(192, 57, 43, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(241, 196, 15, 0.1) 0px, transparent 50%);
+    color: var(--text-color);
+    min-height: 100vh;
+}
+
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 3rem;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    background: linear-gradient(to right, var(--primary), #fff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+    letter-spacing: 2px;
+}
+
+header p {
+    color: #94a3b8;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.filter-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+button {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+button.active {
+    background: var(--secondary);
+    border-color: var(--secondary);
+    box-shadow: 0 0 20px rgba(59, 76, 202, 0.4);
+}
+
+.pokemon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.pokemon-card {
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    backdrop-filter: blur(16px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+.pokemon-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.pokemon-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.pokemon-card:hover::before {
+    opacity: 1;
+}
+
+.pokemon-image {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 1.5rem;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
+    transition: transform 0.3s ease;
+}
+
+.pokemon-card:hover .pokemon-image {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.pokemon-name {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    text-transform: capitalize;
+}
+
+.pokemon-id {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.1);
+}
+
+.pokemon-types {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.type-badge {
+    padding: 0.3rem 1rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.pokemon-legendary-badge {
+    display: inline-block;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: #000;
+    padding: 0.2rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    margin-top: 1rem;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
